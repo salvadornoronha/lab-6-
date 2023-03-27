@@ -1,0 +1,96 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct{
+    int Posição;
+    char Escalão[3];
+    int Posição_no_escalão;
+    int Dorsal;
+    char Nome[20];
+    char Sexo;
+    char tempo_chegada[12];
+} participante;
+
+void quicksort(participante *participantes, int left, int right, char escalao) {
+    if (left < right) {
+        char pivot[12];
+        strcpy(pivot, participantes[right].tempo_chegada);
+        int i = left - 1;
+        for (int j = left; j < right; j++) {
+            if (participantes[j].Escalão[0] == escalao && strcmp(participantes[j].tempo_chegada, pivot) <= 0) {
+                i++;
+                participante tmp = participantes[i];
+                participantes[i] = participantes[j];
+                participantes[j] = tmp;
+            }
+        }
+        participante tmp = participantes[i+1];
+        participantes[i+1] = participantes[right];
+        participantes[right] = tmp;
+
+        int pi = i + 1;
+
+        quicksort(participantes, left, pi-1, escalao);
+        quicksort(participantes, pi+1, right, escalao);
+    }
+}
+
+int main() {
+    FILE *fp;
+    char line[141];
+    char *token;
+    int n = 0;
+    participante participantes[140];
+
+    fp = fopen("participantes.txt", "r");
+    if (fp == NULL) {
+        fprintf(stderr, "Error opening file\n");
+        exit(1);
+    }
+
+    while (fgets(line, 141, fp)) {
+        token = strtok(line, "\t");
+        participantes[n].Posição = atoi(token);
+
+        token = strtok(NULL, "\t");
+        strcpy(participantes[n].Escalão, token);
+
+        token = strtok(NULL, "\t");
+        participantes[n].Posição_no_escalão = atoi(token);
+
+        token = strtok(NULL, "\t");
+        participantes[n].Dorsal = atoi(token);
+
+        token = strtok(NULL, "\t");
+        strcpy(participantes[n].Nome, token);
+
+        token = strtok(NULL, "\t");
+        participantes[n].Sexo = token[0];
+
+        token = strtok(NULL, "\t");
+        strcpy(participantes[n].tempo_chegada, token);
+
+        n++;
+    }
+
+    char escalao;
+    printf("Qual o escalao que deseja classificar (ex: M ou F)? ");
+    scanf("%c", &escalao);
+
+    quicksort(participantes, 0, n-1, escalao);
+
+    printf("Posição\tEscalão\tPosição no escalão\tDorsal\tNome\t\t\tSexo\tTempo de Chegada\n");
+    for (int i = 0; i < n; i++) {
+        if (participantes[i].Escalão[0] == escalao) {
+            printf("%d\t%s\t%d\t\t\t%d\t%-20s\t%c\t%s\n",
+                   participantes[i].Posição, participantes[i].Escalão,
+                   participantes[i].Posição_no_escalão, participantes[i].Dorsal,
+                   participantes[i].Nome, participantes[i].Sexo,
+                   participantes[i].tempo_chegada);
+        }
+    }
+
+    fclose(fp);
+    return 0;
+
